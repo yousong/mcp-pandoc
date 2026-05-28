@@ -1,0 +1,51 @@
+edition: 3.0.0
+name: mcp-pandoc
+access: "default"
+
+vars:
+  region: "cn-hangzhou"
+  functionName: "mcp-pandoc"
+  acr:
+    registry: "registry.cn-hangzhou.aliyuncs.com"
+    namespace: "default"
+    image: "mcp-pandoc"
+  imageTag: "latest"
+
+resources:
+  fc-custom-container:
+    component: fc3
+    props:
+      region: ${vars.region}
+      functionName: ${vars.functionName}
+      description: "MCP Pandoc service"
+      runtime: custom-container
+      cpu: 0.5
+      memorySize: 512
+      diskSize: 10240
+      timeout: 300
+      instanceConcurrency: 100
+      maxInstanceCount: 5
+      customContainerConfig:
+        image: ${vars.acr.registry}/${vars.acr.namespace}/${vars.acr.image}:${vars.imageTag}
+        port: 8080
+      environmentVariables:
+        MCP_PANDOC_TRANSPORT: http
+        MCP_PANDOC_UPLOAD_DIR: /tmp/uploads
+        # MCP_PANDOC_AUTH_TOKEN: "your-secret-bearer-token-here"
+        # MCP_PANDOC_UPLOAD_TTL_DAYS: "7"
+        # MCP_PANDOC_UPLOAD_MAX_SIZE_MB: "2048"
+        # MCP_PANDOC_GC_INTERVAL_SECONDS: "60"
+        # MCP_PANDOC_BASE_URL: "https://your-fc-domain.com"
+        # MCP_PANDOC_PORT: "8080"
+      triggers:
+      - triggerName: default
+        triggerType: http
+        triggerConfig:
+          authType: anonymous
+          methods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+          - HEAD
+          - OPTIONS

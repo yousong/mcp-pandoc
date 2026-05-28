@@ -458,14 +458,56 @@ npx -y @smithery/cli install mcp-pandoc --client claude
 
 ## Development
 
+### Local Development with dev.sh
+
+The `dev.sh` script provides commands for local development and deployment:
+
+```bash
+./dev.sh run [stdio|http]   # Run the MCP server locally (default: stdio)
+./dev.sh build              # Build Docker image
+./dev.sh test               # Run integration tests (auto-starts server locally)
+./dev.sh deploy-fc          # Deploy to Aliyun Function Compute via s tool
+```
+
+Environment variables:
+- `MCP_PANDOC_AUTH_TOKEN` — Bearer token for HTTP auth
+- `MCP_PANDOC_UPLOAD_DIR` — Upload directory (default: `/tmp/uploads`)
+- `MCP_PANDOC_UPLOAD_TTL_DAYS` — File TTL in days (default: 7)
+- `MCP_PANDOC_UPLOAD_MAX_SIZE_MB` — Max upload dir size in MiB (default: 2048)
+- `MCP_PANDOC_GC_INTERVAL_SECONDS` — Min interval between GC runs (default: 60)
+- `IMAGE_REPO_TAG` — Docker image repo:tag (default: `mcp-pandoc:latest`)
+- `TEST_BASE_URL` — Base URL for tests (default: `http://localhost:8080`)
+
+### Docker Deployment
+
+Build the Docker image:
+
+```bash
+./dev.sh build
+# or: docker build -t mcp-pandoc:latest .
+```
+
+The Docker image includes:
+- `pandoc` with `texlive-xetex` for PDF generation
+- `texlive-lang-chinese` and `fonts-noto-cjk` for CJK character support
+- All Python dependencies via `uv`
+
+Deploy to Aliyun Function Compute:
+
+1. Copy `s.yaml.example` to `s.yaml` and edit with your ACR/FC settings
+2. Configure s tool account: `s config add`
+3. Run: `./dev.sh deploy-fc`
+
 ### Testing
 
 To run the comprehensive test suite:
 
 ```bash
-uv run pytest tests/test_conversions.py       # Bidirectional format conversions
-uv run pytest tests/test_http_transport.py    # HTTP mode integration tests
+./dev.sh test                    # Local integration test (auto-starts server)
+TEST_BASE_URL=https://your-fc-url ./dev.sh test  # Test against remote FC
 ```
+
+This validates the full upload → convert → download workflow.
 
 ### Building and Publishing (PyPI)
 
